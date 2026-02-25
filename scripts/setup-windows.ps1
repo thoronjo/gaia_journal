@@ -1,10 +1,10 @@
 # Make Something — Windows Setup
-# Run with: irm https://raw.githubusercontent.com/farzaa/makesomething/main/scripts/setup-windows.ps1 | iex
+# Run with: irm https://raw.githubusercontent.com/filip-pilar/makesomething/main/scripts/setup-windows.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
-$REPO_URL = "https://github.com/farzaa/makesomething.git"
-$RAW_BASE_URL = "https://raw.githubusercontent.com/farzaa/makesomething/main"
+$REPO_URL = "https://github.com/filip-pilar/makesomething.git"
+$RAW_BASE_URL = "https://raw.githubusercontent.com/filip-pilar/makesomething/main"
 $INSTALL_DIR = "$HOME\Desktop\make-something"
 
 Write-Host ""

@@ -23,7 +23,7 @@ you just need a laptop, a chatgpt account (free version works), and an idea. if 
 open Terminal and paste:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/farzaa/makesomething/main/scripts/setup-mac.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/filip-pilar/makesomething/main/scripts/setup-mac.sh)
 ```
 
 ### windows
@@ -31,7 +31,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/farzaa/makesomething/main/sc
 open PowerShell and paste:
 
 ```powershell
-irm https://raw.githubusercontent.com/farzaa/makesomething/main/scripts/setup-windows.ps1 | iex
+irm https://raw.githubusercontent.com/filip-pilar/makesomething/main/scripts/setup-windows.ps1 | iex
 ```
 
 ## resume

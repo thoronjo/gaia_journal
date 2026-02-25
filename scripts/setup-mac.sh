@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Make Something — macOS / Linux / WSL Setup
-# Run with: bash <(curl -fsSL https://raw.githubusercontent.com/farzaa/makesomething/main/scripts/setup-mac.sh)
+# Run with: bash <(curl -fsSL https://raw.githubusercontent.com/filip-pilar/makesomething/main/scripts/setup-mac.sh)
 #
 # Idempotent — safe to run multiple times.
 
