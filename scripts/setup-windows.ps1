@@ -16,23 +16,6 @@ Write-Host "     Make Something Setup" -ForegroundColor Cyan
 Write-Host "  ==============================" -ForegroundColor Cyan
 Write-Host ""
 
-# --- Check for WSL ---
-$wslAvailable = $false
-try {
-    $wslCheck = wsl --list --quiet 2>$null
-    if ($LASTEXITCODE -eq 0 -and $wslCheck) {
-        $wslAvailable = $true
-    }
-} catch {}
-
-if ($wslAvailable) {
-    Write-Host "-> Found WSL! Running setup inside Linux..."
-    wsl bash -c "bash <(curl -fsSL $RAW_BASE_URL/scripts/setup-mac.sh)"
-    exit
-}
-
-Write-Host "-> Running native Windows setup..."
-
 # --- 1. Node.js ---
 $nodeInstalled = $false
 try {
