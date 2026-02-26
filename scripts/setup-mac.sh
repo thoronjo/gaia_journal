@@ -70,10 +70,10 @@ fi
 # --- 3. Codex CLI ---
 if ! command -v codex &>/dev/null; then
   echo "→ Installing Codex CLI..."
-  npm install -g @openai/codex
+  npm install -g @openai/codex 2>/dev/null || sudo npm install -g @openai/codex
 else
   echo "→ Updating Codex CLI..."
-  npm update -g @openai/codex
+  npm update -g @openai/codex 2>/dev/null || sudo npm update -g @openai/codex
 fi
 
 # --- 4. Git ---
