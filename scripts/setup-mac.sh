@@ -94,6 +94,10 @@ else
 fi
 
 # --- 6. Install dependencies ---
+# Fix npm cache ownership if a previous sudo install broke it
+if [[ -d "$HOME/.npm" ]]; then
+  sudo chown -R "$(whoami)" "$HOME/.npm"
+fi
 echo "→ Installing dependencies..."
 npm install
 
