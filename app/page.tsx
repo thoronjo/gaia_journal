@@ -19,6 +19,7 @@ import {
   Textarea,
 } from "@heroui/react";
 import { motion } from "framer-motion";
+import KoalaMascot from "@/components/KoalaMascot";
 
 const MOODS = [
   { key: "soft", label: "Soft", color: "bg-pink-100 text-pink-700" },
@@ -121,6 +122,7 @@ export default function Home() {
   const [rewardVideo, setRewardVideo] = useState<(typeof REWARD_VIDEOS)[0] | null>(
     null
   );
+  const [justSaved, setJustSaved] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -188,6 +190,11 @@ export default function Home() {
         createdAt: new Date().toISOString(),
       },
     }));
+    
+    // trigger koala celebration
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
+    
     if (sentences >= 5) {
       const pick =
         REWARD_VIDEOS[Math.floor(Math.random() * REWARD_VIDEOS.length)];
@@ -391,31 +398,24 @@ export default function Home() {
                   </div>
                 </CardHeader>
                 <CardBody className="flex items-center gap-4">
-                  <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-rose-100/70">
-                    <svg
-                      width="72"
-                      height="72"
-                      viewBox="0 0 72 72"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <circle cx="36" cy="38" r="20" fill="#F7DCE7" />
-                      <circle cx="20" cy="26" r="10" fill="#F2CFE0" />
-                      <circle cx="52" cy="26" r="10" fill="#F2CFE0" />
-                      <circle cx="30" cy="36" r="3" fill="#5C4B57" />
-                      <circle cx="42" cy="36" r="3" fill="#5C4B57" />
-                      <ellipse cx="36" cy="44" rx="6" ry="5" fill="#5C4B57" />
-                      <path
-                        d="M28 48C30.5 51 34 52.5 36 52.5C38 52.5 41.5 51 44 48"
-                        stroke="#5C4B57"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </div>
+                  <KoalaMascot
+                    streak={streak}
+                    moods={draftMoods}
+                    justSaved={justSaved}
+                  />
                   <div className="text-sm text-rose-600">
-                    <p className="font-semibold text-rose-700">say hi to your koala</p>
-                    <p>she celebrates every entry you save.</p>
+                    <p className="font-semibold text-rose-700">
+                      {streak === 0 && "say hi to your koala"}
+                      {streak >= 1 && streak < 3 && "she's proud of you"}
+                      {streak >= 3 && streak < 7 && "she's cheering you on"}
+                      {streak >= 7 && "she's your biggest fan"}
+                    </p>
+                    <p>
+                      {streak === 0 && "she celebrates every entry you save."}
+                      {streak >= 1 && streak < 3 && "keep the momentum going!"}
+                      {streak >= 3 && streak < 7 && "you're building something real."}
+                      {streak >= 7 && "this streak is incredible!"}
+                    </p>
                   </div>
                 </CardBody>
               </Card>
