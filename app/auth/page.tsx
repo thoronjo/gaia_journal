@@ -91,7 +91,28 @@ export default function AuthPage() {
           className="w-full max-w-md"
         >
           <div className="mb-8 text-center">
-            <div className="text-5xl mb-4">💗</div>
+            <div className="flex justify-center mb-4">
+              <svg
+                width="80"
+                height="80"
+                viewBox="0 0 72 72"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="36" cy="38" r="20" fill="#F7DCE7" />
+                <circle cx="20" cy="26" r="10" fill="#F2CFE0" />
+                <circle cx="52" cy="26" r="10" fill="#F2CFE0" />
+                <circle cx="30" cy="36" r="3" fill="#5C4B57" />
+                <circle cx="42" cy="36" r="3" fill="#5C4B57" />
+                <ellipse cx="36" cy="44" rx="6" ry="5" fill="#5C4B57" />
+                <path
+                  d="M28 48C30.5 51 34 52.5 36 52.5C38 52.5 41.5 51 44 48"
+                  stroke="#5C4B57"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
             <h1 className="font-[family-name:var(--font-bricolage)] text-4xl font-bold text-rose-700 mb-2">
               Gaia
             </h1>
