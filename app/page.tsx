@@ -35,22 +35,42 @@ const REWARD_VIDEOS = [
   {
     id: "J---aiyznGQ",
     label: "tiny kitten zoomies",
-    vibe: "cats",
+    moods: ["glow", "soft"],
   },
   {
     id: "hY7m5jjJ9mM",
     label: "cats being dramatic",
-    vibe: "cats",
+    moods: ["bold", "glow"],
   },
   {
     id: "3GwjfUFyY6M",
     label: "feel-good mood boost",
-    vibe: "cheerful",
+    moods: ["brave", "glow"],
   },
   {
     id: "KxGRhd_iWuE",
     label: "random giggle break",
-    vibe: "funny",
+    moods: ["soft", "dreamy"],
+  },
+  {
+    id: "b89CnP0Iq30",
+    label: "peaceful nature sounds",
+    moods: ["calm", "soft"],
+  },
+  {
+    id: "lFcSrYw-ARY",
+    label: "cozy rainy day vibes",
+    moods: ["calm", "dreamy"],
+  },
+  {
+    id: "inpok4MKVLM",
+    label: "you got this energy",
+    moods: ["brave", "bold"],
+  },
+  {
+    id: "ZXsQAXx_ao0",
+    label: "satisfying moments",
+    moods: ["calm", "glow"],
   },
 ];
 
@@ -336,8 +356,20 @@ export default function Home() {
     setTimeout(() => setJustSaved(false), 2000);
     
     if (sentences >= 5) {
-      const pick =
-        REWARD_VIDEOS[Math.floor(Math.random() * REWARD_VIDEOS.length)];
+      // pick video based on mood tags
+      let matchingVideos = REWARD_VIDEOS;
+      
+      if (draftMoods.length > 0) {
+        // filter videos that match any of the user's moods
+        const moodMatches = REWARD_VIDEOS.filter((video) =>
+          video.moods.some((mood) => draftMoods.includes(mood))
+        );
+        if (moodMatches.length > 0) {
+          matchingVideos = moodMatches;
+        }
+      }
+      
+      const pick = matchingVideos[Math.floor(Math.random() * matchingVideos.length)];
       setRewardVideo(pick);
       setRewardOpen(true);
     }
