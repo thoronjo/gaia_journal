@@ -125,6 +125,7 @@ type Entry = {
   moods: string[];
   title: string;
   createdAt: string;
+  photos?: string[]; // base64 encoded images
 };
 
 type Entries = Record<string, Entry>;
@@ -160,6 +161,7 @@ export default function Home() {
   const [justSaved, setJustSaved] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMood, setFilterMood] = useState<string | null>(null);
+  const [draftPhotos, setDraftPhotos] = useState<string[]>([]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -348,6 +350,7 @@ export default function Home() {
         title: draftTitle.trim(),
         text: draftText.trim(),
         moods: draftMoods,
+        photos: draftPhotos,
         createdAt: new Date().toISOString(),
       },
     }));
@@ -383,10 +386,12 @@ export default function Home() {
       setDraftTitle(entry.title);
       setDraftText(entry.text);
       setDraftMoods(entry.moods);
+      setDraftPhotos(entry.photos || []);
     } else {
       setDraftTitle("");
       setDraftText("");
       setDraftMoods([]);
+      setDraftPhotos([]);
     }
   };
 
@@ -413,6 +418,34 @@ export default function Home() {
   const handleLogout = () => {
     localStorage.removeItem("gaia-user");
     router.push("/auth");
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user?.isPremium) {
+      setUpgradeModalOpen(true);
+      return;
+    }
+
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("photo must be under 5MB");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setDraftPhotos((prev) => [...prev, base64]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setDraftPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
   if (!isClient) {
@@ -564,6 +597,61 @@ export default function Home() {
                     label: "text-rose-500",
                   }}
                 />
+                
+                {user?.isPremium && (
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm text-rose-500">photos (premium)</label>
+                    <div className="flex flex-wrap gap-2">
+                      {draftPhotos.map((photo, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={photo}
+                            alt={`upload ${index + 1}`}
+                            className="h-20 w-20 rounded-xl object-cover border border-rose-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePhoto(index)}
+                            className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full h-6 w-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      {draftPhotos.length < 5 && (
+                        <label className="h-20 w-20 rounded-xl border-2 border-dashed border-rose-300 flex items-center justify-center cursor-pointer hover:border-rose-400 hover:bg-rose-50/50 transition-all">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                          />
+                          <span className="text-2xl text-rose-400">+</span>
+                        </label>
+                      )}
+                    </div>
+                    {draftPhotos.length >= 5 && (
+                      <p className="text-xs text-rose-400">max 5 photos per entry</p>
+                    )}
+                  </div>
+                )}
+                
+                {!user?.isPremium && (
+                  <button
+                    type="button"
+                    onClick={() => setUpgradeModalOpen(true)}
+                    className="rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/50 px-4 py-3 text-left hover:border-amber-400 transition-all"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📸</span>
+                      <div>
+                        <p className="text-sm font-semibold text-amber-600">add photos to entries</p>
+                        <p className="text-xs text-amber-500">upgrade to premium to unlock</p>
+                      </div>
+                    </div>
+                  </button>
+                )}
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
                     className="bg-gradient-to-r from-rose-400 via-pink-400 to-fuchsia-400 text-white"
@@ -813,12 +901,29 @@ export default function Home() {
                     className="rounded-2xl border border-rose-100 bg-rose-50/70 px-4 py-3 text-left transition-all hover:bg-rose-100/70"
                     onClick={() => handleSelectDate(dateKey)}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-semibold text-rose-700">{dateKey}</span>
                       <span className="text-xs text-rose-400">
                         {entry.moods.join(", ") || "moodless"}
                       </span>
                     </div>
+                    {entry.photos && entry.photos.length > 0 && (
+                      <div className="flex gap-1 mb-2">
+                        {entry.photos.slice(0, 3).map((photo, idx) => (
+                          <img
+                            key={idx}
+                            src={photo}
+                            alt=""
+                            className="h-12 w-12 rounded-lg object-cover"
+                          />
+                        ))}
+                        {entry.photos.length > 3 && (
+                          <div className="h-12 w-12 rounded-lg bg-rose-200/50 flex items-center justify-center text-xs text-rose-600">
+                            +{entry.photos.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <p className="line-clamp-2 text-sm text-rose-600">
                       {entry.title || entry.text}
                     </p>
