@@ -448,6 +448,97 @@ export default function Home() {
     setDraftPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleExportPDF = async () => {
+    if (!user?.isPremium) {
+      setUpgradeModalOpen(true);
+      return;
+    }
+
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF();
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const maxWidth = pageWidth - 2 * margin;
+    let yPosition = margin;
+
+    // title page
+    doc.setFontSize(24);
+    doc.setTextColor(251, 113, 133); // rose-500
+    doc.text("Gaia Journal", pageWidth / 2, yPosition, { align: "center" });
+    
+    yPosition += 10;
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${user.name}'s entries`, pageWidth / 2, yPosition, { align: "center" });
+    
+    yPosition += 10;
+    doc.text(`Exported on ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: "center" });
+    
+    yPosition += 20;
+    doc.setFontSize(10);
+    doc.text(`Total entries: ${totalEntries}`, pageWidth / 2, yPosition, { align: "center" });
+    
+    // entries
+    const sortedEntries = Object.entries(entries).sort((a, b) => (a[0] < b[0] ? 1 : -1));
+    
+    for (const [dateStr, entry] of sortedEntries) {
+      // check if we need a new page
+      if (yPosition > pageHeight - 40) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      yPosition += 15;
+      
+      // date
+      doc.setFontSize(14);
+      doc.setTextColor(251, 113, 133);
+      doc.text(dateStr, margin, yPosition);
+      yPosition += 8;
+      
+      // moods
+      if (entry.moods.length > 0) {
+        doc.setFontSize(9);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Moods: ${entry.moods.join(", ")}`, margin, yPosition);
+        yPosition += 6;
+      }
+      
+      // title
+      if (entry.title) {
+        doc.setFontSize(12);
+        doc.setTextColor(50, 50, 50);
+        const titleLines = doc.splitTextToSize(entry.title, maxWidth);
+        doc.text(titleLines, margin, yPosition);
+        yPosition += titleLines.length * 6;
+      }
+      
+      // text
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      const textLines = doc.splitTextToSize(entry.text, maxWidth);
+      
+      for (const line of textLines) {
+        if (yPosition > pageHeight - 20) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        doc.text(line, margin, yPosition);
+        yPosition += 5;
+      }
+      
+      yPosition += 5;
+      
+      // separator
+      doc.setDrawColor(251, 207, 232); // rose-200
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    }
+    
+    doc.save(`gaia-journal-${new Date().toISOString().split("T")[0]}.pdf`);
+  };
+
   if (!isClient) {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(255,216,232,0.7),transparent_60%),radial-gradient(circle_at_20%_20%,rgba(255,196,220,0.7),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(255,235,245,0.9),transparent_40%),linear-gradient(180deg,#ffe5f1,#ffd1e8_30%,#ffeff7_70%,#fff) ] text-zinc-800">
@@ -496,6 +587,16 @@ export default function Home() {
                   onPress={() => setUpgradeModalOpen(true)}
                 >
                   upgrade
+                </Button>
+              )}
+              {user?.isPremium && totalEntries > 0 && (
+                <Button
+                  size="sm"
+                  variant="flat"
+                  className="bg-white/70 text-rose-600"
+                  onPress={handleExportPDF}
+                >
+                  📥 export pdf
                 </Button>
               )}
               <Button
