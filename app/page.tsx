@@ -162,6 +162,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMood, setFilterMood] = useState<string | null>(null);
   const [draftPhotos, setDraftPhotos] = useState<string[]>([]);
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -173,6 +175,46 @@ export default function Home() {
       router.push("/auth");
     } else {
       setUser(JSON.parse(storedUser));
+    }
+
+    // setup speech recognition
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognitionInstance = new SpeechRecognition();
+        recognitionInstance.continuous = true;
+        recognitionInstance.interimResults = true;
+        recognitionInstance.lang = "en-US";
+
+        recognitionInstance.onresult = (event: any) => {
+          let interimTranscript = "";
+          let finalTranscript = "";
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTranscript += transcript + " ";
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+
+          if (finalTranscript) {
+            setDraftText((prev) => prev + finalTranscript);
+          }
+        };
+
+        recognitionInstance.onerror = (event: any) => {
+          console.error("Speech recognition error:", event.error);
+          setIsListening(false);
+        };
+
+        recognitionInstance.onend = () => {
+          setIsListening(false);
+        };
+
+        setRecognition(recognitionInstance);
+      }
     }
   }, [router]);
 
@@ -539,6 +581,26 @@ export default function Home() {
     doc.save(`gaia-journal-${new Date().toISOString().split("T")[0]}.pdf`);
   };
 
+  const toggleVoiceInput = () => {
+    if (!user?.isPremium) {
+      setUpgradeModalOpen(true);
+      return;
+    }
+
+    if (!recognition) {
+      alert("voice input not supported in your browser");
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
+
   if (!isClient) {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(255,216,232,0.7),transparent_60%),radial-gradient(circle_at_20%_20%,rgba(255,196,220,0.7),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(255,235,245,0.9),transparent_40%),linear-gradient(180deg,#ffe5f1,#ffd1e8_30%,#ffeff7_70%,#fff) ] text-zinc-800">
@@ -687,17 +749,33 @@ export default function Home() {
                     );
                   })}
                 </div>
-                <Textarea
-                  label="What did today feel like?"
-                  placeholder=""
-                  minRows={8}
-                  value={draftText}
-                  onChange={(event) => setDraftText(event.target.value)}
-                  classNames={{
-                    inputWrapper: "bg-rose-50/60",
-                    label: "text-rose-500",
-                  }}
-                />
+                <div className="relative">
+                  <Textarea
+                    label="What did today feel like?"
+                    placeholder=""
+                    minRows={8}
+                    value={draftText}
+                    onChange={(event) => setDraftText(event.target.value)}
+                    classNames={{
+                      inputWrapper: "bg-rose-50/60",
+                      label: "text-rose-500",
+                    }}
+                  />
+                  {user?.isPremium && recognition && (
+                    <button
+                      type="button"
+                      onClick={toggleVoiceInput}
+                      className={`absolute bottom-3 right-3 rounded-full p-2 transition-all ${
+                        isListening
+                          ? "bg-red-500 text-white animate-pulse"
+                          : "bg-rose-200 text-rose-700 hover:bg-rose-300"
+                      }`}
+                      title={isListening ? "stop recording" : "start voice input"}
+                    >
+                      {isListening ? "🔴" : "🎤"}
+                    </button>
+                  )}
+                </div>
                 
                 {user?.isPremium && (
                   <div className="flex flex-col gap-2">
