@@ -1,0 +1,149 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
+export default function AuthPage() {
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    // check if already logged in
+    const user = localStorage.getItem("gaia-user");
+    if (user) {
+      router.push("/");
+    }
+  }, [router]);
+
+  const handleSubmit = () => {
+    if (!email.trim() || !password.trim()) return;
+    if (isSignUp && !name.trim()) return;
+
+    if (isSignUp) {
+      // sign up
+      const user = {
+        email: email.trim(),
+        name: name.trim(),
+        isPremium: false,
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem("gaia-user", JSON.stringify(user));
+      router.push("/");
+    } else {
+      // login - just check if user exists
+      const existingUser = localStorage.getItem("gaia-user");
+      if (existingUser) {
+        router.push("/");
+      } else {
+        // create account if doesn't exist
+        const user = {
+          email: email.trim(),
+          name: email.split("@")[0],
+          isPremium: false,
+          createdAt: new Date().toISOString(),
+        };
+        localStorage.setItem("gaia-user", JSON.stringify(user));
+        router.push("/");
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(255,216,232,0.7),transparent_60%),radial-gradient(circle_at_20%_20%,rgba(255,196,220,0.7),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(255,235,245,0.9),transparent_40%),linear-gradient(180deg,#ffe5f1,#ffd1e8_30%,#ffeff7_70%,#fff)] text-zinc-800">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-pink-200/60 blur-3xl" />
+        <div className="absolute top-40 -left-24 h-72 w-72 rounded-full bg-rose-200/70 blur-3xl" />
+      </div>
+
+      <div className="relative flex min-h-screen items-center justify-center px-6 py-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-md"
+        >
+          <div className="mb-8 text-center">
+            <div className="text-5xl mb-4">💗</div>
+            <h1 className="font-[family-name:var(--font-bricolage)] text-4xl font-bold text-rose-700 mb-2">
+              Gaia
+            </h1>
+            <p className="font-[family-name:var(--font-instrument-serif)] text-lg text-rose-600">
+              your daily glow journal
+            </p>
+          </div>
+
+          <Card className="border-none bg-white/80 backdrop-blur">
+            <CardHeader>
+              <div className="w-full text-center">
+                <p className="text-2xl font-semibold text-rose-700">
+                  {isSignUp ? "create your account" : "welcome back"}
+                </p>
+              </div>
+            </CardHeader>
+            <CardBody className="gap-4">
+              {isSignUp && (
+                <Input
+                  label="Name"
+                  placeholder="what should we call you?"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  classNames={{
+                    inputWrapper: "bg-rose-50/60",
+                    label: "text-rose-500",
+                  }}
+                />
+              )}
+              <Input
+                label="Email"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                classNames={{
+                  inputWrapper: "bg-rose-50/60",
+                  label: "text-rose-500",
+                }}
+              />
+              <Input
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                classNames={{
+                  inputWrapper: "bg-rose-50/60",
+                  label: "text-rose-500",
+                }}
+              />
+              <Button
+                className="bg-gradient-to-r from-rose-400 via-pink-400 to-fuchsia-400 text-white"
+                size="lg"
+                onPress={handleSubmit}
+              >
+                {isSignUp ? "start journaling" : "sign in"}
+              </Button>
+              <button
+                type="button"
+                className="text-sm text-rose-500 hover:text-rose-700 transition-colors"
+                onClick={() => setIsSignUp(!isSignUp)}
+              >
+                {isSignUp
+                  ? "already have an account? sign in"
+                  : "need an account? sign up"}
+              </button>
+            </CardBody>
+          </Card>
+
+          <p className="text-center text-xs text-rose-400 mt-6">
+            everything stays on this device. your words are yours.
+          </p>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

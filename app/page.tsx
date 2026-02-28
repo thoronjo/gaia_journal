@@ -20,14 +20,15 @@ import {
 } from "@heroui/react";
 import { motion } from "framer-motion";
 import KoalaMascot from "@/components/KoalaMascot";
+import { useRouter } from "next/navigation";
 
 const MOODS = [
-  { key: "soft", label: "Soft", color: "bg-pink-100 text-pink-700" },
-  { key: "glow", label: "Glow", color: "bg-rose-100 text-rose-700" },
-  { key: "calm", label: "Calm", color: "bg-fuchsia-100 text-fuchsia-700" },
-  { key: "brave", label: "Brave", color: "bg-pink-200 text-pink-800" },
-  { key: "dreamy", label: "Dreamy", color: "bg-rose-200 text-rose-800" },
-  { key: "bold", label: "Bold", color: "bg-fuchsia-200 text-fuchsia-800" },
+  { key: "soft", label: "Soft", color: "bg-pink-100 text-pink-700", free: true },
+  { key: "glow", label: "Glow", color: "bg-rose-100 text-rose-700", free: true },
+  { key: "calm", label: "Calm", color: "bg-fuchsia-100 text-fuchsia-700", free: true },
+  { key: "brave", label: "Brave", color: "bg-pink-200 text-pink-800", free: false },
+  { key: "dreamy", label: "Dreamy", color: "bg-rose-200 text-rose-800", free: false },
+  { key: "bold", label: "Bold", color: "bg-fuchsia-200 text-fuchsia-800", free: false },
 ];
 
 const REWARD_VIDEOS = [
@@ -108,7 +109,10 @@ type Entry = {
 type Entries = Record<string, Entry>;
 
 export default function Home() {
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const [user, setUser] = useState<{ email: string; name: string; isPremium: boolean } | null>(null);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [entries, setEntries] = useState<Entries>(() => {
     if (typeof window === "undefined") return {};
     const stored = localStorage.getItem("gaia-entries");
@@ -139,7 +143,15 @@ export default function Home() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
-  }, []);
+    
+    // check auth
+    const storedUser = localStorage.getItem("gaia-user");
+    if (!storedUser) {
+      router.push("/auth");
+    } else {
+      setUser(JSON.parse(storedUser));
+    }
+  }, [router]);
 
   useEffect(() => {
     localStorage.setItem("gaia-entries", JSON.stringify(entries));
@@ -346,9 +358,28 @@ export default function Home() {
   };
 
   const handleMoodToggle = (key: string) => {
+    const mood = MOODS.find((m) => m.key === key);
+    if (mood && !mood.free && !user?.isPremium) {
+      setUpgradeModalOpen(true);
+      return;
+    }
     setDraftMoods((prev) =>
       prev.includes(key) ? prev.filter((mood) => mood !== key) : [...prev, key]
     );
+  };
+
+  const handleUpgrade = () => {
+    if (user) {
+      const updatedUser = { ...user, isPremium: true };
+      localStorage.setItem("gaia-user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      setUpgradeModalOpen(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("gaia-user");
+    router.push("/auth");
   };
 
   if (!isClient) {
@@ -379,6 +410,38 @@ export default function Home() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="flex flex-col gap-3"
         >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">👋</div>
+              <div>
+                <p className="text-sm text-rose-500">welcome back,</p>
+                <p className="font-semibold text-rose-700">{user?.name}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {user?.isPremium ? (
+                <Chip className="bg-gradient-to-r from-amber-400 to-orange-400 text-white" variant="solid">
+                  ✨ premium
+                </Chip>
+              ) : (
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-amber-400 to-orange-400 text-white"
+                  onPress={() => setUpgradeModalOpen(true)}
+                >
+                  upgrade
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="flat"
+                className="bg-white/70 text-rose-600"
+                onPress={handleLogout}
+              >
+                logout
+              </Button>
+            </div>
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-rose-400">
@@ -440,16 +503,22 @@ export default function Home() {
               </CardHeader>
               <CardBody className="gap-4">
                 <div className="flex flex-wrap gap-2">
-                  {MOODS.map((mood) => (
-                    <Chip
-                      key={mood.key}
-                      className={`${mood.color} cursor-pointer border border-white/80`}
-                      variant={draftMoods.includes(mood.key) ? "solid" : "flat"}
-                      onClick={() => handleMoodToggle(mood.key)}
-                    >
-                      {mood.label}
-                    </Chip>
-                  ))}
+                  {MOODS.map((mood) => {
+                    const isLocked = !mood.free && !user?.isPremium;
+                    return (
+                      <Chip
+                        key={mood.key}
+                        className={`${mood.color} cursor-pointer border border-white/80 ${
+                          isLocked ? "opacity-50" : ""
+                        }`}
+                        variant={draftMoods.includes(mood.key) ? "solid" : "flat"}
+                        onClick={() => handleMoodToggle(mood.key)}
+                      >
+                        {isLocked && "🔒 "}
+                        {mood.label}
+                      </Chip>
+                    );
+                  })}
                 </div>
                 <Textarea
                   label="What did today feel like?"
@@ -788,7 +857,7 @@ export default function Home() {
               </CardBody>
             </Card>
 
-            {totalEntries > 0 && (
+            {totalEntries > 0 && user?.isPremium && (
               <Card className="border-none bg-white/80 backdrop-blur">
                 <CardHeader>
                   <div>
@@ -887,6 +956,82 @@ export default function Home() {
               onPress={() => setRewardOpen(false)}
             >
               back to journaling
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal
+        isOpen={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        size="2xl"
+        classNames={{ base: "bg-white/95" }}
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <span className="text-xs uppercase tracking-[0.3em] text-amber-400">
+              unlock premium
+            </span>
+            <span className="text-2xl font-semibold text-rose-700">
+              get the full gaia experience
+            </span>
+          </ModalHeader>
+          <ModalBody>
+            <div className="flex flex-col gap-4">
+              <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 border border-amber-200">
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-4xl font-bold text-amber-600">$4.99</span>
+                  <span className="text-sm text-amber-500">/month</span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">✨</span>
+                    <div>
+                      <p className="font-semibold text-rose-700">unlock all 6 moods</p>
+                      <p className="text-sm text-rose-600">express the full range of your feelings</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">📊</span>
+                    <div>
+                      <p className="font-semibold text-rose-700">mood insights & patterns</p>
+                      <p className="text-sm text-rose-600">see how you've been feeling over time</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">🎁</span>
+                    <div>
+                      <p className="font-semibold text-rose-700">more reward videos</p>
+                      <p className="text-sm text-rose-600">unlock the full video library</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">📥</span>
+                    <div>
+                      <p className="font-semibold text-rose-700">export your journal</p>
+                      <p className="text-sm text-rose-600">download all your entries as text</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-rose-400 text-center">
+                this is a demo — clicking upgrade will simulate premium access
+              </p>
+            </div>
+          </ModalBody>
+          <ModalFooter className="flex gap-2">
+            <Button
+              variant="flat"
+              className="bg-rose-50 text-rose-600"
+              onPress={() => setUpgradeModalOpen(false)}
+            >
+              maybe later
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-amber-400 to-orange-400 text-white"
+              onPress={handleUpgrade}
+            >
+              upgrade now
             </Button>
           </ModalFooter>
         </ModalContent>
