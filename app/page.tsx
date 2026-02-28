@@ -159,6 +159,18 @@ export default function Home() {
     return unique.size;
   }, [entries]);
 
+  const moodStats = useMemo(() => {
+    const counts: Record<string, number> = {};
+    Object.values(entries).forEach((entry) => {
+      entry.moods.forEach((mood) => {
+        counts[mood] = (counts[mood] || 0) + 1;
+      });
+    });
+    return Object.entries(counts)
+      .map(([mood, count]) => ({ mood, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [entries]);
+
   const badges = [
     {
       label: "First Bloom",
@@ -486,9 +498,23 @@ export default function Home() {
                       return <div key={`empty-${index}`} />;
                     }
                     const dateStr = formatDate(date);
-                    const hasEntry = Boolean(entries[dateStr]);
+                    const entry = entries[dateStr];
+                    const hasEntry = Boolean(entry);
                     const isSelected = dateStr === selectedDate;
                     const isToday = dateStr === todayStr;
+
+                    // get dominant mood color for this day
+                    let moodColor = "";
+                    if (entry && entry.moods.length > 0) {
+                      const firstMood = MOODS.find((m) => m.key === entry.moods[0]);
+                      if (firstMood) {
+                        // extract just the bg color for the ring
+                        const bgMatch = firstMood.color.match(/bg-(\w+-\d+)/);
+                        if (bgMatch) {
+                          moodColor = `ring-${bgMatch[1]}`;
+                        }
+                      }
+                    }
 
                     return (
                       <Button
@@ -499,7 +525,9 @@ export default function Home() {
                           isSelected
                             ? "bg-gradient-to-br from-rose-400 to-pink-400 text-white"
                             : "bg-rose-50/70 text-rose-600"
-                        } ${isToday && !isSelected ? "ring-2 ring-rose-300" : ""}`}
+                        } ${isToday && !isSelected ? "ring-2 ring-rose-300" : ""} ${
+                          hasEntry && !isSelected && moodColor ? `ring-2 ${moodColor}` : ""
+                        }`}
                         onPress={() => handleSelectDate(dateStr)}
                       >
                         <div className="relative flex h-full w-full items-center justify-center">
@@ -571,6 +599,58 @@ export default function Home() {
                 ))}
               </CardBody>
             </Card>
+
+            {totalEntries > 0 && (
+              <Card className="border-none bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-rose-400">mood insights</p>
+                    <p className="text-lg font-semibold text-rose-700">how you've been feeling</p>
+                  </div>
+                </CardHeader>
+                <CardBody className="gap-3">
+                  {moodStats.length === 0 ? (
+                    <p className="text-sm text-rose-500">start tagging moods to see patterns</p>
+                  ) : (
+                    <>
+                      {moodStats.slice(0, 3).map((stat) => {
+                        const moodData = MOODS.find((m) => m.key === stat.mood);
+                        const percentage = Math.round((stat.count / totalEntries) * 100);
+                        return (
+                          <div key={stat.mood} className="flex flex-col gap-1.5">
+                            <div className="flex items-center justify-between">
+                              <Chip
+                                size="sm"
+                                className={moodData?.color || "bg-rose-100 text-rose-700"}
+                                variant="flat"
+                              >
+                                {moodData?.label || stat.mood}
+                              </Chip>
+                              <span className="text-xs text-rose-500">
+                                {stat.count} {stat.count === 1 ? "entry" : "entries"} · {percentage}%
+                              </span>
+                            </div>
+                            <Progress
+                              value={percentage}
+                              size="sm"
+                              classNames={{
+                                indicator: "bg-gradient-to-r from-pink-400 to-rose-400",
+                                track: "bg-rose-100",
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                      {moodStats.length > 3 && (
+                        <p className="text-xs text-rose-400 text-center mt-1">
+                          +{moodStats.length - 3} more mood{moodStats.length - 3 === 1 ? "" : "s"} tracked
+                        </p>
+                      )}
+                    </>
+                  )}
+                </CardBody>
+              </Card>
+            )}
           </motion.div>
         </div>
 
