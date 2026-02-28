@@ -9,7 +9,11 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -21,8 +25,27 @@ export default function AuthPage() {
   }, [router]);
 
   const handleSubmit = () => {
-    if (!email.trim() || !password.trim()) return;
-    if (isSignUp && !name.trim()) return;
+    setError("");
+    
+    if (!email.trim() || !password.trim()) {
+      setError("please fill in all fields");
+      return;
+    }
+    
+    if (isSignUp && !name.trim()) {
+      setError("please enter your name");
+      return;
+    }
+    
+    if (isSignUp && password !== confirmPassword) {
+      setError("passwords don't match");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError("password must be at least 6 characters");
+      return;
+    }
 
     if (isSignUp) {
       // sign up
@@ -86,6 +109,11 @@ export default function AuthPage() {
               </div>
             </CardHeader>
             <CardBody className="gap-4">
+              {error && (
+                <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
               {isSignUp && (
                 <Input
                   label="Name"
@@ -111,7 +139,7 @@ export default function AuthPage() {
               />
               <Input
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -119,7 +147,38 @@ export default function AuthPage() {
                   inputWrapper: "bg-rose-50/60",
                   label: "text-rose-500",
                 }}
+                endContent={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-rose-400 hover:text-rose-600 transition-colors"
+                  >
+                    {showPassword ? "👁️" : "👁️‍🗨️"}
+                  </button>
+                }
               />
+              {isSignUp && (
+                <Input
+                  label="Confirm Password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  classNames={{
+                    inputWrapper: "bg-rose-50/60",
+                    label: "text-rose-500",
+                  }}
+                  endContent={
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="text-rose-400 hover:text-rose-600 transition-colors"
+                    >
+                      {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                    </button>
+                  }
+                />
+              )}
               <Button
                 className="bg-gradient-to-r from-rose-400 via-pink-400 to-fuchsia-400 text-white"
                 size="lg"
@@ -130,7 +189,11 @@ export default function AuthPage() {
               <button
                 type="button"
                 className="text-sm text-rose-500 hover:text-rose-700 transition-colors"
-                onClick={() => setIsSignUp(!isSignUp)}
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError("");
+                  setConfirmPassword("");
+                }}
               >
                 {isSignUp
                   ? "already have an account? sign in"
