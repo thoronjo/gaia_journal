@@ -187,18 +187,92 @@ export default function Home() {
     {
       label: "First Bloom",
       earned: totalEntries >= 1,
+      description: "wrote your first entry",
     },
     {
       label: "3-Day Streak",
       earned: streak >= 3,
+      description: "journaled 3 days in a row",
     },
     {
-      label: "7-Day Streak",
+      label: "Week Warrior",
       earned: streak >= 7,
+      description: "7-day streak unlocked",
+    },
+    {
+      label: "Fortnight Focus",
+      earned: streak >= 14,
+      description: "14 days of consistency",
+    },
+    {
+      label: "Month Master",
+      earned: streak >= 30,
+      description: "30-day streak achieved",
     },
     {
       label: "Mood Muse",
       earned: moodVariety >= 4,
+      description: "explored 4 different moods",
+    },
+    {
+      label: "Feeling Everything",
+      earned: moodVariety >= 6,
+      description: "tagged all 6 moods",
+    },
+    {
+      label: "10 Entries",
+      earned: totalEntries >= 10,
+      description: "saved 10 journal entries",
+    },
+    {
+      label: "25 Entries",
+      earned: totalEntries >= 25,
+      description: "saved 25 journal entries",
+    },
+    {
+      label: "50 Entries",
+      earned: totalEntries >= 50,
+      description: "saved 50 journal entries",
+    },
+    {
+      label: "Century Club",
+      earned: totalEntries >= 100,
+      description: "100 entries milestone",
+    },
+    {
+      label: "Weekend Writer",
+      earned: Object.keys(entries).some((dateStr) => {
+        const date = new Date(dateStr);
+        const day = date.getDay();
+        return day === 0 || day === 6;
+      }),
+      description: "journaled on a weekend",
+    },
+    {
+      label: "Early Bird",
+      earned: Object.values(entries).some((entry) => {
+        const hour = new Date(entry.createdAt).getHours();
+        return hour >= 5 && hour < 9;
+      }),
+      description: "wrote an entry before 9am",
+    },
+    {
+      label: "Night Owl",
+      earned: Object.values(entries).some((entry) => {
+        const hour = new Date(entry.createdAt).getHours();
+        return hour >= 22 || hour < 5;
+      }),
+      description: "journaled after 10pm",
+    },
+    {
+      label: "Wordsmith",
+      earned: Object.values(entries).some((entry) => entry.text.split(/\s+/).length >= 200),
+      description: "wrote 200+ words in one entry",
+    },
+    {
+      label: "Title Master",
+      earned: Object.values(entries).filter((entry) => entry.title.trim()).length >= 10,
+      description: "titled 10 entries",
     },
   ];
 
@@ -671,18 +745,46 @@ export default function Home() {
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-rose-400">badges</p>
                   <p className="text-lg font-semibold text-rose-700">your glow shelf</p>
+                  <p className="text-xs text-rose-500 mt-1">
+                    {badges.filter((b) => b.earned).length} of {badges.length} unlocked
+                  </p>
                 </div>
               </CardHeader>
-              <CardBody className="flex flex-wrap gap-2">
-                {badges.map((badge) => (
-                  <Chip
-                    key={badge.label}
-                    className={`border ${badge.earned ? "bg-rose-100 text-rose-700" : "bg-white text-rose-300"}`}
-                    variant="flat"
-                  >
-                    {badge.label}
-                  </Chip>
-                ))}
+              <CardBody className="gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {badges.map((badge) => (
+                    <div
+                      key={badge.label}
+                      className={`rounded-xl border p-3 transition-all ${
+                        badge.earned
+                          ? "bg-rose-100 border-rose-200"
+                          : "bg-white border-rose-100 opacity-60"
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="text-lg">
+                          {badge.earned ? "🌸" : "🔒"}
+                        </span>
+                        <div className="flex-1">
+                          <p
+                            className={`text-sm font-semibold ${
+                              badge.earned ? "text-rose-700" : "text-rose-400"
+                            }`}
+                          >
+                            {badge.label}
+                          </p>
+                          <p
+                            className={`text-xs ${
+                              badge.earned ? "text-rose-600" : "text-rose-400"
+                            }`}
+                          >
+                            {badge.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardBody>
             </Card>
 
