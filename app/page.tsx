@@ -53,6 +53,16 @@ const REWARD_VIDEOS = [
   },
 ];
 
+const DAILY_QUESTS = [
+  { prompt: "write 3 gentle sentences", description: "tiny reflections count. you're building a habit, not a novel.", petals: 15 },
+  { prompt: "describe one moment that made you smile", description: "even small joys deserve to be remembered.", petals: 15 },
+  { prompt: "write about something you're grateful for", description: "gratitude shifts everything, even on hard days.", petals: 15 },
+  { prompt: "capture a feeling in 5 words or less", description: "sometimes less is more. distill your day.", petals: 15 },
+  { prompt: "write about what you're looking forward to", description: "hope is a practice. what's coming that excites you?", petals: 15 },
+  { prompt: "reflect on something you learned today", description: "growth happens in tiny moments. what did today teach you?", petals: 15 },
+  { prompt: "write a letter to your future self", description: "what do you want to remember about right now?", petals: 20 },
+];
+
 const formatDate = (date: Date) => {
   const y = date.getFullYear();
   const m = `${date.getMonth() + 1}`.padStart(2, "0");
@@ -189,6 +199,15 @@ export default function Home() {
       earned: moodVariety >= 4,
     },
   ];
+
+  // pick daily quest based on day of year so it rotates consistently
+  const todayQuest = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now.getTime() - start.getTime();
+    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+    return DAILY_QUESTS[dayOfYear % DAILY_QUESTS.length];
+  }, []);
 
   const handleSave = () => {
     if (!draftText.trim()) return;
@@ -382,15 +401,15 @@ export default function Home() {
                       daily quest
                     </p>
                     <p className="font-[family-name:var(--font-instrument-serif)] text-lg text-rose-700">
-                      write 3 gentle sentences
+                      {todayQuest.prompt}
                     </p>
                   </div>
                   <div className="rounded-full bg-rose-100 px-3 py-1 text-xs text-rose-500">
-                    +15 petals
+                    +{todayQuest.petals} petals
                   </div>
                 </CardHeader>
                 <CardBody className="gap-2 text-sm text-rose-600">
-                  <p>tiny reflections count. you&apos;re building a habit, not a novel.</p>
+                  <p>{todayQuest.description}</p>
                   <div className="flex items-center gap-2">
                     <Divider className="flex-1 bg-rose-100" />
                     <span className="text-xs text-rose-400">tap save to complete</span>
