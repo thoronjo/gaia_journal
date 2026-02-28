@@ -164,6 +164,7 @@ export default function Home() {
   const [draftPhotos, setDraftPhotos] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -175,6 +176,12 @@ export default function Home() {
       router.push("/auth");
     } else {
       setUser(JSON.parse(storedUser));
+    }
+
+    // load dark mode preference
+    const savedDarkMode = localStorage.getItem("gaia-dark-mode");
+    if (savedDarkMode === "true") {
+      setDarkMode(true);
     }
 
     // setup speech recognition
@@ -601,6 +608,12 @@ export default function Home() {
     }
   };
 
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem("gaia-dark-mode", String(newMode));
+  };
+
   if (!isClient) {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(255,216,232,0.7),transparent_60%),radial-gradient(circle_at_20%_20%,rgba(255,196,220,0.7),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(255,235,245,0.9),transparent_40%),linear-gradient(180deg,#ffe5f1,#ffd1e8_30%,#ffeff7_70%,#fff) ] text-zinc-800">
@@ -616,10 +629,18 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(255,216,232,0.7),transparent_60%),radial-gradient(circle_at_20%_20%,rgba(255,196,220,0.7),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(255,235,245,0.9),transparent_40%),linear-gradient(180deg,#ffe5f1,#ffd1e8_30%,#ffeff7_70%,#fff) ] text-zinc-800">
+    <div className={`min-h-screen ${
+      darkMode
+        ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100"
+        : "bg-[radial-gradient(circle_at_top,rgba(255,216,232,0.7),transparent_60%),radial-gradient(circle_at_20%_20%,rgba(255,196,220,0.7),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(255,235,245,0.9),transparent_40%),linear-gradient(180deg,#ffe5f1,#ffd1e8_30%,#ffeff7_70%,#fff)] text-zinc-800"
+    }`}>
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-pink-200/60 blur-3xl" />
-        <div className="absolute top-40 -left-24 h-72 w-72 rounded-full bg-rose-200/70 blur-3xl" />
+        {!darkMode && (
+          <>
+            <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-pink-200/60 blur-3xl" />
+            <div className="absolute top-40 -left-24 h-72 w-72 rounded-full bg-rose-200/70 blur-3xl" />
+          </>
+        )}
       </div>
 
       <div className="relative mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 lg:px-10">
@@ -638,6 +659,15 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={toggleDarkMode}
+                className={`p-2 rounded-full transition-colors ${
+                  darkMode ? "bg-gray-700 text-yellow-400" : "bg-white/70 text-gray-600"
+                }`}
+                title={darkMode ? "light mode" : "dark mode"}
+              >
+                {darkMode ? "☀️" : "🌙"}
+              </button>
               {user?.isPremium ? (
                 <Chip className="bg-gradient-to-r from-amber-400 to-orange-400 text-white" variant="solid">
                   ✨ premium
@@ -655,7 +685,7 @@ export default function Home() {
                 <Button
                   size="sm"
                   variant="flat"
-                  className="bg-white/70 text-rose-600"
+                  className={darkMode ? "bg-gray-700 text-gray-200" : "bg-white/70 text-rose-600"}
                   onPress={handleExportPDF}
                 >
                   📥 export pdf
@@ -664,7 +694,7 @@ export default function Home() {
               <Button
                 size="sm"
                 variant="flat"
-                className="bg-white/70 text-rose-600"
+                className={darkMode ? "bg-gray-700 text-gray-200" : "bg-white/70 text-rose-600"}
                 onPress={handleLogout}
               >
                 logout
