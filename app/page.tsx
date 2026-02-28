@@ -1018,8 +1018,8 @@ export default function Home() {
                         <div className="relative flex h-full w-full items-center justify-center">
                           {hasEntry ? (
                             <>
-                              <span className="absolute text-xs opacity-30">{date.getDate()}</span>
-                              <span className="text-lg font-bold relative z-10">✕</span>
+                              <span className="absolute text-xs text-blue-400 font-semibold">{date.getDate()}</span>
+                              <span className="text-lg font-bold relative z-10 text-rose-600">✕</span>
                             </>
                           ) : (
                             <span>{date.getDate()}</span>
