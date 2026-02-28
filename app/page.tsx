@@ -133,6 +133,8 @@ export default function Home() {
     null
   );
   const [justSaved, setJustSaved] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterMood, setFilterMood] = useState<string | null>(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -208,6 +210,27 @@ export default function Home() {
     const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
     return DAILY_QUESTS[dayOfYear % DAILY_QUESTS.length];
   }, []);
+
+  // filter entries based on search and mood
+  const filteredEntries = useMemo(() => {
+    let result = Object.entries(entries);
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(([_, entry]) => {
+        return (
+          entry.title.toLowerCase().includes(query) ||
+          entry.text.toLowerCase().includes(query)
+        );
+      });
+    }
+
+    if (filterMood) {
+      result = result.filter(([_, entry]) => entry.moods.includes(filterMood));
+    }
+
+    return result.sort(([a], [b]) => (a < b ? 1 : -1));
+  }, [entries, searchQuery, filterMood]);
 
   const handleSave = () => {
     if (!draftText.trim()) return;
@@ -564,37 +587,81 @@ export default function Home() {
 
             <Card className="border-none bg-white/80 backdrop-blur">
               <CardHeader>
-                <div>
+                <div className="w-full">
                   <p className="text-xs uppercase tracking-[0.3em] text-rose-400">recent blooms</p>
                   <p className="text-lg font-semibold text-rose-700">past entries</p>
                 </div>
               </CardHeader>
               <CardBody className="gap-3">
-                {Object.keys(entries)
-                  .sort((a, b) => (a < b ? 1 : -1))
-                  .slice(0, 4)
-                  .map((dateKey) => (
-                    <button
-                      key={dateKey}
-                      type="button"
-                      className="rounded-2xl border border-rose-100 bg-rose-50/70 px-4 py-3 text-left"
-                      onClick={() => handleSelectDate(dateKey)}
+                <Input
+                  placeholder="search your entries..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  classNames={{
+                    inputWrapper: "bg-rose-50/60",
+                  }}
+                  isClearable
+                  onClear={() => setSearchQuery("")}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Chip
+                    className={`cursor-pointer border ${
+                      filterMood === null
+                        ? "bg-rose-100 text-rose-700"
+                        : "bg-white text-rose-400"
+                    }`}
+                    variant="flat"
+                    onClick={() => setFilterMood(null)}
+                  >
+                    all moods
+                  </Chip>
+                  {MOODS.map((mood) => (
+                    <Chip
+                      key={mood.key}
+                      className={`cursor-pointer border ${
+                        filterMood === mood.key
+                          ? mood.color
+                          : "bg-white text-rose-400"
+                      }`}
+                      variant="flat"
+                      onClick={() => setFilterMood(mood.key)}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-rose-700">{dateKey}</span>
-                        <span className="text-xs text-rose-400">
-                          {entries[dateKey].moods.join(", ") || "moodless"}
-                        </span>
-                      </div>
-                      <p className="line-clamp-2 text-sm text-rose-600">
-                        {entries[dateKey].title || entries[dateKey].text}
-                      </p>
-                    </button>
+                      {mood.label}
+                    </Chip>
                   ))}
+                </div>
+                {filteredEntries.slice(0, 4).map(([dateKey, entry]) => (
+                  <button
+                    key={dateKey}
+                    type="button"
+                    className="rounded-2xl border border-rose-100 bg-rose-50/70 px-4 py-3 text-left transition-all hover:bg-rose-100/70"
+                    onClick={() => handleSelectDate(dateKey)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-rose-700">{dateKey}</span>
+                      <span className="text-xs text-rose-400">
+                        {entry.moods.join(", ") || "moodless"}
+                      </span>
+                    </div>
+                    <p className="line-clamp-2 text-sm text-rose-600">
+                      {entry.title || entry.text}
+                    </p>
+                  </button>
+                ))}
+                {filteredEntries.length === 0 && totalEntries > 0 && (
+                  <div className="rounded-2xl border border-dashed border-rose-200 px-4 py-6 text-center text-sm text-rose-500">
+                    no entries match your search or filter
+                  </div>
+                )}
                 {totalEntries === 0 && (
                   <div className="rounded-2xl border border-dashed border-rose-200 px-4 py-6 text-center text-sm text-rose-500">
                     your past entries will appear here as soon as you save your first one
                   </div>
+                )}
+                {filteredEntries.length > 4 && (
+                  <p className="text-xs text-rose-400 text-center">
+                    +{filteredEntries.length - 4} more {filteredEntries.length - 4 === 1 ? "entry" : "entries"}
+                  </p>
                 )}
               </CardBody>
             </Card>
