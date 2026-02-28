@@ -1006,7 +1006,7 @@ export default function Home() {
                         key={dateStr}
                         variant={isSelected ? "solid" : "flat"}
                         size="sm"
-                        className={`h-10 w-10 rounded-full ${
+                        className={`h-10 w-10 rounded-full relative ${
                           isSelected
                             ? "bg-gradient-to-br from-rose-400 to-pink-400 text-white"
                             : "bg-rose-50/70 text-rose-600"
@@ -1016,9 +1016,10 @@ export default function Home() {
                         onPress={() => handleSelectDate(dateStr)}
                       >
                         <div className="relative flex h-full w-full items-center justify-center">
-                          <span>{date.getDate()}</span>
-                          {hasEntry && (
-                            <span className="absolute -bottom-1 h-1.5 w-1.5 rounded-full bg-rose-400" />
+                          {hasEntry ? (
+                            <span className="text-lg font-bold">✕</span>
+                          ) : (
+                            <span>{date.getDate()}</span>
                           )}
                         </div>
                       </Button>
