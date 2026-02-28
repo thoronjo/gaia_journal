@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="128" fill="#FFE5F1"/>
+  
+  <!-- Koala head -->
+  <circle cx="256" cy="280" r="140" fill="#F7DCE7"/>
+  
+  <!-- Ears -->
+  <circle cx="140" cy="180" r="70" fill="#F2CFE0"/>
+  <circle cx="372" cy="180" r="70" fill="#F2CFE0"/>
+  
+  <!-- Eyes -->
+  <circle cx="210" cy="260" r="20" fill="#5C4B57"/>
+  <circle cx="302" cy="260" r="20" fill="#5C4B57"/>
+  
+  <!-- Nose -->
+  <ellipse cx="256" cy="310" rx="42" ry="35" fill="#5C4B57"/>
+  
+  <!-- Mouth -->
+  <path d="M196 340C220 370 240 380 256 380C272 380 292 370 316 340" stroke="#5C4B57" stroke-width="12" stroke-linecap="round" fill="none"/>
+  
+  <!-- Blush -->
+  <ellipse cx="154" cy="295" rx="28" ry="21" fill="#F8B4D9" opacity="0.6"/>
+  <ellipse cx="358" cy="295" rx="28" ry="21" fill="#F8B4D9" opacity="0.6"/>
+</svg>
