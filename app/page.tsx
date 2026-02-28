@@ -184,6 +184,13 @@ export default function Home() {
       setDarkMode(true);
     }
 
+    // register service worker for PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // silently fail if service worker registration fails
+      });
+    }
+
     // setup speech recognition
     if (typeof window !== "undefined") {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;

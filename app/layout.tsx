@@ -45,6 +45,7 @@ export const metadata: Metadata = {
   title: "makesomething ☀️",
   description: "build your first app with ai. look what i made!",
   metadataBase: new URL("https://makesomething.so"),
+  manifest: "/manifest.json",
   openGraph: {
     title: "makesomething ☀️",
     description: "look what i made!",
